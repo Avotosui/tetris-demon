@@ -1,0 +1,3 @@
+Research simulated annealing and applications for this? 
+Research Tetrises and SRS and T-Spins (more reward?)
+Tucking and stuff if it can work fast enough (or just deal with it)

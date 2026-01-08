@@ -1,7 +1,5 @@
 from tetris_engine import TetrisGame
-
-# Consider temperature later
-# Consider rewarding the Tetris and SRS crazy stuff later
+import random
 
 class BoardEvaluator: 
     def get_score(self, board, weights): 
@@ -144,3 +142,35 @@ class GeneticPlayer:
             
         # return the column and rotation of the best move
         return (best_move[1], best_move[2])
+    
+    def get_genome(self): 
+        return self.weights
+    
+
+# helper functions for generating, crossing over, and mutating weights
+def generate_random_genome(): 
+    return {
+        "height": random.uniform(-50, 0),
+        "holes": random.uniform(-50, 0), 
+        "bumpiness": random.uniform(-50, 0),
+        "lines": random.uniform(0, 50)
+    }
+
+def crossover(parent1_weights, parent2_weights): 
+    child_weights = {}
+    
+    for key in parent1_weights: 
+        if(random.random() > 0.5): # 50% chance to inherit each parent's weights
+            child_weights[key] = parent1_weights[key]
+        else: 
+            child_weights[key] = parent2_weights[key]
+    return child_weights
+
+def mutate(weights, mutation_rate=0.1, mutation_step = 2.0): 
+    mutated_weights = weights.copy() 
+    
+    for key in mutated_weights: 
+        if(random.random() < mutation_rate): 
+            mutated_weights[key] += random.uniform(-mutation_step, mutation_step)
+    
+    return mutated_weights

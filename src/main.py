@@ -1,7 +1,9 @@
 import time
+import datetime
 import os
 from tetris_engine import TetrisGame
 from ai_player import GeneticPlayer
+import json
 
 def print_board(game):
     # clear the screen (cls for windows, clear for mac/linux)
@@ -24,14 +26,32 @@ def main():
     # create game
     game = TetrisGame()
     
-    # hand-coded weights
-    manual_weights = {
-        "lines": 100.0,      # We REALLY want to clear lines
-        "height": -2.0,      # We dislike height
-        "holes": -10.0,      # We HATE holes
-        "bumpiness": -1.0    # We prefer a flat surface
-    }
-    player = GeneticPlayer(manual_weights)
+    # loading brain (from train.py)
+    if os.path.exists("best_brain.json"):
+        print("loading AI brain from file...")
+        with open("best_brain.json", "r") as f:
+            champion = json.load(f)
+            weights = champion[1]
+            
+            print(f"loaded old champion:")
+            print(f"loaded score: {champion[0]}")
+            print(f"loaded weights: {champion[1]}")
+    else:
+        # manually inputted weights (super greedy)
+        print("no brain file found, using manual weights.")
+        weights = {
+            "lines": 100.0,
+            "height": -2.0,
+            "holes": -10.0,
+            "bumpiness": -1.0
+        }
+        
+    player = GeneticPlayer(weights)
+    
+    print("playing...")
+    
+    total_moves = 0
+    start_time = datetime.datetime.now()
     
     # game loop
     while not game.game_over:
@@ -45,16 +65,19 @@ def main():
             
         col, rot = move
         
+        # stats
+        total_moves += 1
+        
         # executes moves
         reward = game.step(col, rot)
         
-        # print board
-        print_board(game)
-        
-        # time between frames
-        time.sleep(0.5)
+        # print board + time between frames (uncomment if you want to see it actually play)
+        # print_board(game)
+        # time.sleep(0.01)
 
-    print(f"GAME OVER! Final Score: {game.score}")
+    print(f"Final Score: {game.score}")
+    print(f"Total Moves: {total_moves}")
+    print(f"Time Elapsed: {datetime.datetime.now() - start_time}")
 
 if __name__ == "__main__":
     main()

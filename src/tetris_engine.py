@@ -121,8 +121,16 @@ class TetrisGame:
         self.lock_piece(piece, column, final_y)
         
         # clear lines and get score
-        self.score += self.clear_lines()
-        
+        lines_cleared = self.clear_lines()
+        if(lines_cleared == 1): 
+            self.score += 40
+        elif(lines_cleared == 2): 
+            self.score += 100
+        elif(lines_cleared == 3): 
+            self.score += 300
+        elif(lines_cleared == 4): 
+            self.score += 1200
+            
         # 6. Spawn next piece
         self.spawn_piece()
         
