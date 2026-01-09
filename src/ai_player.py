@@ -103,19 +103,44 @@ class BoardEvaluator:
             
                 
 
-# currently drop-only, there's no tucking/sliding yet
+# currently drop only, there's no tucking/sliding yet
 class MoveScanner: 
-    def get_all_possible_moves(self, game, piece): 
+    def get_all_possible_moves(self, game): 
         moves = []
+        
+        swapped_hold = False
+        moves.extend(self._scan_board_using_piece(game, swapped_hold)) # scan using current piece
+        
+        swapped_hold = True
+        moves.extend(self._scan_board_using_piece(game, swapped_hold)) # scan using held piece
+
+        # returns a list of all possible moves (with current and held piece)
+        return moves
+    
+    def _add_piece_to_board(self, board, piece, x, y): 
+        # helper to put the piece onto the temp board
+        for r, row in enumerate(piece): 
+            for c, val in enumerate(row): 
+                if val: 
+                    board[y + r][x + c] = 1
+                    
+    def _scan_board_using_piece(self, game, swapped_hold): 
+        piece_moves = []
+        
+        piece = game.current_piece
+        if(swapped_hold): 
+            piece = game.held_piece
+            if(piece is None): 
+                piece = game.get_piece_preview()[0]
         
         # loop through 4 possible rotations
         for rotation in range(4): 
             # rotates the base piece
             rotated_piece = game.rotate_piece(piece, rotation)
                 
-            # -3 to allow for pieces to fit into the side columns
+            # -3 to allow for pieces to fit into the left side columns (matrix rotation issues)
             for col in range(-3, game.width): 
-                # check validity, does it fit at top of board? 
+                # fit at top of board? 
                 if not game.is_valid_position(game.board, rotated_piece, col, 0):
                     continue
                 
@@ -127,17 +152,9 @@ class MoveScanner:
                 self._add_piece_to_board(temp_board, rotated_piece, col, drop_y)
                 
                 # add move to possible moves
-                moves.append((temp_board, col, rotation))
-
-        # returns a list of all possible moves
-        return moves
-    
-    def _add_piece_to_board(self, board, piece, x, y): 
-        # helper to put the piece onto the temp board
-        for r, row in enumerate(piece): 
-            for c, val in enumerate(row): 
-                if val: 
-                    board[y + r][x + c] = 1
+                piece_moves.append((temp_board, col, rotation, swapped_hold))
+                
+        return piece_moves
             
 
 class GeneticPlayer: 
@@ -148,9 +165,9 @@ class GeneticPlayer:
         
     def get_best_move(self, game):
         # use MoveScanner to get all options
-        moves = self.scanner.get_all_possible_moves(game, game.current_piece)
+        moves = self.scanner.get_all_possible_moves(game)
         
-        best_score = -float('inf') 
+        best_score = -float('inf')
         best_move = None
         
         # use BoardEvaluator to score moves using self.weights
@@ -161,7 +178,7 @@ class GeneticPlayer:
             # calculate score
             score = self.evaluator.get_score(board_state, self.weights)
             
-            # track winner
+            # track winning move
             if score > best_score: 
                 best_score = score
                 best_move = move
@@ -169,8 +186,8 @@ class GeneticPlayer:
         if best_move is None: 
             return None
             
-        # return the column and rotation of the best move
-        return (best_move[1], best_move[2])
+        # return the column, rotation, and swap_hold of the best move
+        return (best_move[1], best_move[2], best_move[3])
     
     def get_genome(self): 
         return self.weights

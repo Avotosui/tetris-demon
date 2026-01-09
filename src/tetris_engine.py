@@ -7,6 +7,8 @@ import random
 MATRIX_HEIGHT = 20
 MATRIX_WIDTH = 10
 
+PIECE_PREVIEW_AMOUNT = 3
+
 # based on the one-sided tetrominoes section of the Tetromino wikipedia page with correct starting orientations (flat)
 SHAPES = {
     'I': [
@@ -56,6 +58,9 @@ class TetrisGame:
         self.current_piece = None
         self.current_piece_key = None
         
+        self.held_piece = None
+        self.held_piece_key = None
+        
         self.board = [[0] * width for _ in range(height)]
         self.bag = []
         
@@ -99,10 +104,14 @@ class TetrisGame:
         
         return drop_y
 
-    def step(self, column, rotation): 
+    def step(self, column, rotation, swap_hold): 
         # AI players will call this to change the board to the next state
         # column = target column for piece ranging from 0-9
         # rotatoin = clockwise rotation index (0 = 0 deg, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg)
+        # swap_hold = whether to swap to the held piece
+        
+        if(swap_hold): 
+            self.hold_current_piece()
         
         # creates specific rotated piece
         original_shape = SHAPES[self.current_piece_key] 
@@ -144,20 +153,41 @@ class TetrisGame:
                     self.board[y + r][x + c] = 1
                     
     def spawn_piece(self):
-        # refills the bag if it's empty
-        if not self.bag: 
-            self.bag = ['I', 'O', 'T', 'J', 'L', 'S', 'Z']
-            random.shuffle(self.bag)
+        # refills the bag if it has less than 7 pieces
+        if len(self.bag) < 7: 
+            new_bag = ['I', 'O', 'T', 'J', 'L', 'S', 'Z']
+            random.shuffle(new_bag)
+            self.bag.extend(new_bag)
             
         # take a random piece out of the bag
-        key = self.bag.pop()
-        
+        key = self.bag.pop(0)
+            
         self.current_piece_key = key
         self.current_piece = SHAPES[key]
         
         # check middle spawn
         if not self.is_valid_position(self.board, self.current_piece, 3, 0): 
              self.game_over = True
+             
+    def get_piece_preview(self): 
+        return self.bag[:PIECE_PREVIEW_AMOUNT]
+    
+    def hold_current_piece(self): 
+        # make placeholder for current piece
+        temp_piece = self.current_piece
+        temp_piece_key = self.current_piece_key
+        
+        # hasn't held a piece in this game yet, need to take the next piece
+        if(self.held_piece is None): 
+            self.held_piece_key = self.bag.pop(0)
+            self.held_piece = SHAPES[self.held_piece_key]
+        
+        # swap
+        self.current_piece = self.held_piece
+        self.current_piece_key = self.held_piece_key
+        self.held_piece = temp_piece
+        self.held_piece_key = temp_piece_key
+        
         
     def clear_lines(self): 
         # removes completed lines and adds new empty ones on top

@@ -32,7 +32,7 @@ def playGame(weights):
             break # AI gave up
         
         # make the move
-        tetris_game.step(current_move[0], current_move[1])
+        tetris_game.step(current_move[0], current_move[1], current_move[2])
         
         moves += 1
     

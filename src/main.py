@@ -5,7 +5,7 @@ from tetris_engine import TetrisGame
 from ai_player import GeneticPlayer
 import json
 
-GAMES_TO_RUN = 1
+GAMES_TO_RUN = 36
 
 def print_board(game):
     # clear the screen (cls for windows, clear for mac/linux)
@@ -66,22 +66,25 @@ def main():
                 print("AI gave up (No moves possible)")
                 break
                 
-            col, rot = move
+            col, rot, swap_hold = move
             
             # stats
             total_moves += 1
             
             # executes moves
-            reward = game.step(col, rot)
+            reward = game.step(col, rot, swap_hold)
             
             # print board + time between frames (uncomment if you want to see it actually play)
             print_board(game)
-            time.sleep(0.01)
+            time.sleep(0.5)
+            # if(swap_hold): 
+            #     print("Swapping Hold")
 
         print(f"Final Score: {game.score}")
-        # print(f"{game.score}")
         print(f"Total Moves: {total_moves}")
         print(f"Time Elapsed: {datetime.datetime.now() - start_time}")
+        
+        # print(f"{game.score}")
 
 if __name__ == "__main__":
     main()
