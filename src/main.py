@@ -5,6 +5,7 @@ from tetris_engine import TetrisGame
 from ai_player import GeneticPlayer
 import json
 
+STATS_MODE = False # Stats mode makes it output only the final score, useful for statistics
 GAMES_TO_RUN = 1
 
 def print_board(game):
@@ -75,16 +76,20 @@ def main():
             reward = game.step(col, rot, swap_hold)
             
             # print board + time between frames (uncomment if you want to see it actually play)
-            print_board(game)
-            time.sleep(0.5)
+            if(not STATS_MODE): 
+                print_board(game)
+                time.sleep(0.5)
             # if(swap_hold): 
             #     print("Swapping Hold")
 
-        print(f"Final Score: {game.score}")
-        print(f"Total Moves: {total_moves}")
-        print(f"Time Elapsed: {datetime.datetime.now() - start_time}")
+        if(STATS_MODE):
+            print(f"{game.score}") 
+        else: 
+            print(f"Final Score: {game.score}")
+            print(f"Total Moves: {total_moves}")
+            print(f"Time Elapsed: {datetime.datetime.now() - start_time}")
         
-        # print(f"{game.score}")
+        
 
 if __name__ == "__main__":
     main()

@@ -35,6 +35,7 @@ The various brains are my models based on different training/feature additions.
 - Brain V3 was trained with an updated Tetris engine where it is now able to hold a piece and preview up to three pieces (only processes the current piece and the held piece because my laptop isn't powerful enough to do very deep look-aheads)
 - Brain V4 was worse than Brain V3; I tried implementing a piecewise function that rewarded lower heights up to 5 and disliked upper heights exponentially (wasn't great)
 - Brain V5 has a new wells heuristic and reverted back to the old height penalty but now doesn't penalize lower heights (<= 5)
+- Brain V6 was trained overnight with a cap on how many moves each player had (took about 7.5 hours), performs worse than previous models (seemingly because it liked having more than 1 well)
 
 ## Getting Started
 

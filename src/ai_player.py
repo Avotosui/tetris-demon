@@ -85,7 +85,7 @@ class BoardEvaluator:
         return total_bumpiness
     
     def calculate_wells(self, heights): 
-        total_wells = 0
+        # finds if there is a well, rewards only 1 well, any extras are not rewarded now
         
         for i in range(len(heights)): 
             is_it_a_well = True
@@ -101,9 +101,9 @@ class BoardEvaluator:
                     is_it_a_well = False
 
             if is_it_a_well: 
-                total_wells += 1
+                return 1
         
-        return total_wells
+        return 0
     
     def count_completed_lines(self, board): 
         return sum([1 for row in board if all(row)])
