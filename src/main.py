@@ -5,7 +5,7 @@ from tetris_engine import TetrisGame
 from ai_player import GeneticPlayer
 import json
 
-GAMES_TO_RUN = 36
+GAMES_TO_RUN = 1
 
 def print_board(game):
     # clear the screen (cls for windows, clear for mac/linux)

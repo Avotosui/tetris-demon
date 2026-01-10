@@ -7,16 +7,21 @@ import datetime
 
 
 # training hyperparameters
-POPULATION_SIZE = 30
-GENERATIONS = 15
+POPULATION_SIZE = 100
+GENERATIONS = 100
 
 MOVES_LIMIT = 500
 MOVES_LIMIT_SHIFTING_TOGGLE = True
 MOVES_LIMIT_SHIFT_STEP = 500
+MOVES_LIMIT_SHIFTING_CAP = 2000
 
 SURVIVAL_RATE = 0.2
 MUTATION_RATE = 0.1
 MUTATION_STEP = 2.0
+
+# other parameters
+TRAINING_SAVE_TOGGLE = True
+TRAINING_SAVE_STEP = 5
 
 # game playing helper function
 def playGame(weights): 
@@ -120,6 +125,11 @@ def main():
         
         # replace the population with the next generation
         population = next_generation[:]
+        
+        if(TRAINING_SAVE_TOGGLE and (generation + 1) % TRAINING_SAVE_STEP == 0): 
+            with open(f'latest_brain_gen{generation}.json', 'w') as w: 
+                json.dump((best_player_score, best_player_weights), w)
+            print(f"Saved to latest_brain_gen{generation}.json")
     
     print(f"Training Finished.")
     

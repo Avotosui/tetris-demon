@@ -7,7 +7,8 @@ BASE_MUTATION_STEP = 2.0
 
 # Height penalty
 HEIGHT_PENALTY_TOGGLE = True
-HEIGHT_PENALTY_EXPONENT = 2.5 # subtracts
+HEIGHT_PENALTY_EXPONENT = 2.5
+HEIGHT_PENALTY_BONUS = 36 # small reward for staying around 0-5 (more weighted towards 5)
 
 class BoardEvaluator: 
     def get_score(self, board, weights): 
@@ -25,12 +26,13 @@ class BoardEvaluator:
         agg_height = self.calculate_aggregate_height(board, heights)
         holes = self.calculate_holes(board, heights)
         bumpiness = self.calculate_bumpiness(heights)
+        wells = self.calculate_wells(heights)
         lines = self.count_completed_lines(board)
         
         # extra penalties
         height_penalty = 0
         if HEIGHT_PENALTY_TOGGLE: 
-            height_penalty = self._calculate_exponential_height_penalty(heights)
+            height_penalty = self._calculate_height_penalty(heights)
             
         
         # move score
@@ -38,9 +40,10 @@ class BoardEvaluator:
         
         # multiply raw stats by weights and sum it
         score += agg_height * weights.get("height", 0)
-        score += holes      * weights.get("holes", 0)
-        score += bumpiness  * weights.get("bumpiness", 0)
-        score += lines      * weights.get("lines", 0)
+        score += holes * weights.get("holes", 0)
+        score += bumpiness * weights.get("bumpiness", 0)
+        score += wells * weights.get("wells", 0)
+        score += lines * weights.get("lines", 0)
         
         # score penalties
         score -= height_penalty
@@ -81,6 +84,27 @@ class BoardEvaluator:
             
         return total_bumpiness
     
+    def calculate_wells(self, heights): 
+        total_wells = 0
+        
+        for i in range(len(heights)): 
+            is_it_a_well = True
+            
+            # check left
+            if i > 0: 
+                if heights[i - 1] - heights[i] < 4: 
+                    is_it_a_well = False
+            
+            # check right
+            if i < len(heights) - 1: 
+                if heights[i + 1] - heights[i] < 4: 
+                    is_it_a_well = False
+
+            if is_it_a_well: 
+                total_wells += 1
+        
+        return total_wells
+    
     def count_completed_lines(self, board): 
         return sum([1 for row in board if all(row)])
     
@@ -92,12 +116,13 @@ class BoardEvaluator:
                 return height - y
         return 0
     
-    def _calculate_exponential_height_penalty(self, heights): 
+    def _calculate_height_penalty(self, heights): 
         total_penalty = 0
         exponent = HEIGHT_PENALTY_EXPONENT
         
         for height in heights: 
-            total_penalty += (height ** exponent)
+            if(height > 5): # don't reward stacking super high (> 5)
+                total_penalty += ((height - 5) ** exponent)
             
         return total_penalty
             
@@ -199,6 +224,7 @@ def generate_random_genome():
         "height": random.uniform(-50, 0),
         "holes": random.uniform(-50, 0), 
         "bumpiness": random.uniform(-50, 0),
+        "wells": random.uniform(0, 50),
         "lines": random.uniform(0, 50)
     }
 
