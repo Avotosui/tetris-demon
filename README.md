@@ -1,4 +1,4 @@
-# Genetic Algorithm Tetris AI (Tetris Demon)
+# Genetic Algorithm Tetris AI (Suibot☄️☄️☄️☄️☄️☄️)
 
 This is a headless Tetris engine with an AI player that uses a genetic algorithm to tune its heuristic weights. It’s mainly a personal project for learning more about game AI and genetic algorithms.
 
