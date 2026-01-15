@@ -20,7 +20,7 @@ MUTATION_RATE = 0.1
 MUTATION_STEP = 2.0
 
 # other parameters
-TRAINING_SAVE_TOGGLE = True
+TRAINING_SAVE_TOGGLE = False
 TRAINING_SAVE_STEP = 5
 
 # game playing helper function
@@ -127,9 +127,9 @@ def main():
         population = next_generation[:]
         
         if(TRAINING_SAVE_TOGGLE and (generation + 1) % TRAINING_SAVE_STEP == 0): 
-            with open(f'brains/latest_brain_gen{generation}.json', 'w') as w: 
+            with open(f'brains/latest_brain_gen{generation + 1}.json', 'w') as w: 
                 json.dump((best_player_score, best_player_weights), w)
-            print(f"Saved to brains/latest_brain_gen{generation}.json")
+            print(f"Saved to brains/latest_brain_gen{generation + 1}.json")
     
     print(f"Training Finished.")
     

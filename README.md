@@ -16,7 +16,10 @@ This is a headless Tetris engine with an AI player that uses a genetic algorithm
 - Placement Control  
   The AI picks a rotation and x-position, instead of using movement keys, and the engine places the piece there. 
 
-## Future plans
+## Demonstration
+![Tetris AI scoring almost 30 million points and final board state](assets/tetris_score.png)
+
+## Future Plans
 
 - Add SRS support  
   Implement the Super Rotation System so rotations behave more like modern Tetris (and the AI will hopefully be able to do the T-Spins and such ).
@@ -43,7 +46,7 @@ The various brains are my models based on different training/feature additions.
 ## Getting Started
 
 **Requirements:** Python 3.x
-**Recommended:** PyPy (helpful for speeding up the AI)
+**Recommended:** PyPy (helpful for speeding up the AI and programs)
 
 Run `main.py` to see the current AI play in the headless engine. 
 Run `trainer.py` if you wish to train your own genetic AI player (will override best_brain.json if it's better). 

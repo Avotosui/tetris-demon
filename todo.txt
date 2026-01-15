@@ -2,3 +2,5 @@ Research simulated annealing and applications for this? GASA apparently????
 Research SRS and T-Spins (more reward?)
 Tucking and stuff if it can work fast enough (or just deal with it)
 - BFS with a piece rotation trait to determine if it fits? Might be really inefficient lmao
+
+Try out deleting the height penalty and then making aggregate height -> aggregate height squared

@@ -49,7 +49,6 @@ def main():
     player = GeneticPlayer(weights)
     
     # play the game(s)
-    
     for i in range(GAMES_TO_RUN): 
         game = TetrisGame()
         # print("playing...")
@@ -84,6 +83,7 @@ def main():
 
         if(STATS_MODE):
             print(f"{game.score}") 
+            # print_board(game) # for examining final board states
         else: 
             print(f"Final Score: {game.score}")
             print(f"Total Moves: {total_moves}")

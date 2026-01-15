@@ -1,5 +1,6 @@
 from tetris_engine import TetrisGame
 import random
+from collections import deque
 
 # Mutation stats
 BASE_MUTATION_RATE = 0.1
@@ -139,6 +140,19 @@ class BoardEvaluator:
 
 # currently drop only, there's no tucking/sliding yet
 class MoveScanner: 
+    def new_scan_board_using_piece(self, game): 
+        piece = game.current_piece
+        
+        moves = []
+        queue = deque()
+        visited = [[False] * (game.width + 3) for _ in range(game.height)][4]
+        # current piece, x, y, current rotation
+        # queue.append((game.current_piece, skib, 0, 0))
+        while(queue): 
+            current_piece_position = queue.pop()
+            # L, R, CW, CCW, drop 1
+            # if drop cannot happen, then add to list of final moves
+    
     def get_all_possible_moves(self, game): 
         moves = []
         

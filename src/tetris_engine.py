@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 # For debugging
 # random.seed(36)
@@ -9,17 +10,19 @@ MATRIX_WIDTH = 10
 
 PIECE_PREVIEW_AMOUNT = 3
 
-# based on the one-sided tetrominoes section of the Tetromino wikipedia page with correct starting orientations (flat)
+# Guideline SRS Shapes
 SHAPES = {
     'I': [
-        [0, 0, 0, 0], 
-        [1, 1, 1, 1], 
-        [0, 0, 0, 0], 
-        [0, 0, 0, 0], 
+        [0, 0, 0, 0, 0], 
+        [0, 0, 0, 0, 0], 
+        [0, 1, 1, 1, 1], 
+        [0, 0, 0, 0, 0], 
+        [0, 0, 0, 0, 0]
     ],
     'O': [
-        [1, 1],
-        [1, 1]
+        [0, 1, 1],
+        [0, 1, 1], 
+        [0, 0, 0]
     ],
     'T': [
         [0, 1, 0],
@@ -48,6 +51,55 @@ SHAPES = {
     ]
 }
 
+# Tetris Guideline SRS Table (calculated from offsets)
+# SRS[piece_key][original_rotation][final_rotation]
+# 0 = base rotation, 1 = 90 degrees clockwise, 2 = 180 degrees clockwise, 3 = 270 degrees clockwise
+# 0 = 0, 1 = R, 2 = 2, 3 = L (tetris.wiki/Super_Rotation_System)
+SRS = {
+    'I': [
+        [None, [(1,0), (-1,0), (2,0), (-1,1), (2,-2)], None, [(0,1), (-1,1), (2,1), (-1,-1), (2,2)]], 
+        [[(-1,0), (1,0), (-2,0), (1,-1), (-2,2)], None, [(0,1), (-1,1), (2,1), (-1,-1), (2,2)], None], 
+        [None, [(0,-1), (1,-1), (-2,-1), (1,1), (-2,-2)], None, [(-1,0), (1,0), (-2,0), (1,-1), (-2,2)]],  
+        [[(0,-1), (1,-1), (-2,-1), (1,1), (-2,-2)], None, [(1,0), (-1,0), (2,0), (-1,1), (2,-2)], None]
+    ],
+    'O': [
+        [None, [(0,-1)], None, [(1,0)]],
+        [[(0,1)], None, [(1,0)], None],
+        [None, [(-1,0)], None, [(0,1)]],
+        [[(-1,0)], None, [(0,-1)], None],
+    ], 
+    'T': [
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (1,0), (1,1), (0,-2), (1,-2)], None, [(0,0), (1,0), (1,1), (0,-2), (1,-2)], None], 
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None, [(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None]
+    ], 
+    'J': [
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (1,0), (1,1), (0,-2), (1,-2)], None, [(0,0), (1,0), (1,1), (0,-2), (1,-2)], None], 
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None, [(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None]
+    ], 
+    'L': [
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (1,0), (1,1), (0,-2), (1,-2)], None, [(0,0), (1,0), (1,1), (0,-2), (1,-2)], None], 
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None, [(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None]
+    ], 
+    'S': [
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (1,0), (1,1), (0,-2), (1,-2)], None, [(0,0), (1,0), (1,1), (0,-2), (1,-2)], None], 
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None, [(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None]
+    ], 
+    'Z': [
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (1,0), (1,1), (0,-2), (1,-2)], None, [(0,0), (1,0), (1,1), (0,-2), (1,-2)], None], 
+        [None, [(0,0), (-1,0), (-1,-1), (0,2), (-1,2)], None, [(0,0), (1,0), (1,-1), (0,2), (1,2)]], 
+        [[(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None, [(0,0), (-1,0), (-1,1), (0,-2), (-1,-2)], None]
+    ]
+}
+
 class TetrisGame:
     def __init__(self, height=MATRIX_HEIGHT, width=MATRIX_WIDTH):
         self.height = height
@@ -67,11 +119,16 @@ class TetrisGame:
         self.spawn_piece()
 
     def rotate_piece(self, piece, rotations=1): 
+        # actual rotation
         result = piece
         for _ in range(rotations % 4):
             result = [list(row) for row in zip(*result[::-1])]
+            # kick calculation (only actually does something for I and O pieces)
+            # PLACEHOLDER
+        
+        # CHANGE TO INCLUDE THE KICK OFFSET
         return result
-
+    
     def is_valid_position(self, board, piece, target_x, target_y):
         # checks if a piece fits at (target_x, target_y) coordinates
         # returns False if it hits the wall, hits the floor, or intersects with another block
@@ -93,6 +150,14 @@ class TetrisGame:
                             return False
         return True
     
+    def find_kick(self, board, piece_key, original_rotation, final_rotation, x, y): 
+        kicks = SRS[piece_key][original_rotation][final_rotation]
+        
+        for kick in kicks: 
+            result = None
+            for _ in range(rotations % 4):
+                result = [list(row) for row in zip(*result[::-1])]
+    
 
     def get_drop_position(self, piece, column, rotation): 
         # finds the lowest a piece can drop to, given a piece and a x-coordinate
@@ -107,11 +172,11 @@ class TetrisGame:
     def step(self, column, rotation, swap_hold): 
         # AI players will call this to change the board to the next state
         # column = target column for piece ranging from 0-9
-        # rotatoin = clockwise rotation index (0 = 0 deg, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg)
+        # rotation = clockwise rotation index (0 = 0 deg, 1 = 90 deg, 2 = 180 deg, 3 = 270 deg)
         # swap_hold = whether to swap to the held piece
         
         if(swap_hold): 
-            self.hold_current_piece()
+            self.hold_piece()
         
         # creates specific rotated piece
         original_shape = SHAPES[self.current_piece_key] 
@@ -172,12 +237,12 @@ class TetrisGame:
     def get_piece_preview(self): 
         return self.bag[:PIECE_PREVIEW_AMOUNT]
     
-    def hold_current_piece(self): 
+    def hold_piece(self): 
         # make placeholder for current piece
         temp_piece = self.current_piece
         temp_piece_key = self.current_piece_key
         
-        # hasn't held a piece in this game yet, need to take the next piece
+        # hasn't held a piece in this game yet, need to take out the next piece
         if(self.held_piece is None): 
             self.held_piece_key = self.bag.pop(0)
             self.held_piece = SHAPES[self.held_piece_key]
@@ -206,3 +271,52 @@ class TetrisGame:
         
         # return score (currently 1 line = 1 score)
         return lines_cleared
+
+class Board: 
+    def __init__(self, height=MATRIX_HEIGHT, width=MATRIX_WIDTH): 
+        self.height = height
+        self.width = width
+        self.board = [[0] * width for _ in range(height)]
+        
+    def clear_lines(self): 
+        # removes completed lines and adds new empty ones on top
+        # returns number of lines cleared
+        
+        # filter out full rows
+        new_board = [row for row in self.board if any(cell == 0 for cell in row)]
+        
+        # calculate how many rows were cleared and add that many to the top
+        lines_cleared = self.height - len(new_board)
+        for _ in range(lines_cleared):
+            new_board.insert(0, [0] * self.width)
+            
+        # update normal board
+        self.board = new_board
+        
+        # return score (currently 1 line = 1 score)
+        return lines_cleared
+        
+class Piece: 
+    # anchored in top left corner (x, y)
+    def __init__(self, x, y, rotation, piece_key): 
+        self.x = x
+        self.y = y
+        self.rotation = rotation
+        self.piece_key = piece_key
+    
+    
+
+class MoveScanner: 
+    def find_all_legal_moves(game): 
+        moves = []
+        
+        queue = deque()
+        visited = [[False] * (game.width + 3) for _ in range(game.height)][4]
+        
+        
+        # current piece, x, y, current rotation
+        # queue.append((game.current_piece, skib, 0, 0))
+        while(queue): 
+            current_piece_position = queue.pop()
+            # L, R, CW, CCW, drop 1
+            # if drop cannot happen, then add to list of final moves
