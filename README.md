@@ -23,6 +23,7 @@ This is a headless Tetris engine with an AI player that uses a genetic algorithm
 
 - Average of 3 for each player?
 - Multiprocessing implementation?
+- More heuristics for encouraging setting up T-spins and such?
 
 ## Brains
 
